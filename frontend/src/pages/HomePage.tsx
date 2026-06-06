@@ -94,19 +94,31 @@ export default function HomePage() {
         }}>
           {scenes.length === 0 ? (
             <>
-              <Card hoverable style={{ borderRadius: 12 }}>
+              <Card 
+                hoverable 
+                style={{ borderRadius: 12, cursor: 'pointer' }}
+                onClick={() => setSelectedScene({ sid: 1, scene_name: '面试场景', prompt: 'Can you introduce yourself?' } as SceneItem)}
+              >
                 <Space direction="vertical">
                   <Title level={5}>面试场景</Title>
                   <p style={{ color: '#666' }}>Job Interview</p>
                 </Space>
               </Card>
-              <Card hoverable style={{ borderRadius: 12 }}>
+              <Card 
+                hoverable 
+                style={{ borderRadius: 12, cursor: 'pointer' }}
+                onClick={() => setSelectedScene({ sid: 2, scene_name: '点餐场景', prompt: 'I would like to order a steak.' } as SceneItem)}
+              >
                 <Space direction="vertical">
                   <Title level={5}>点餐场景</Title>
                   <p style={{ color: '#666' }}>Ordering Food</p>
                 </Space>
               </Card>
-              <Card hoverable style={{ borderRadius: 12 }}>
+              <Card 
+                hoverable 
+                style={{ borderRadius: 12, cursor: 'pointer' }}
+                onClick={() => setSelectedScene({ sid: 3, scene_name: '会议场景', prompt: 'Let us discuss the project progress.' } as SceneItem)}
+              >
                 <Space direction="vertical">
                   <Title level={5}>会议场景</Title>
                   <p style={{ color: '#666' }}>Meeting</p>
@@ -118,7 +130,7 @@ export default function HomePage() {
               <Card
                 key={item.sid}
                 hoverable
-                style={{ borderRadius: 12 }}
+                style={{ borderRadius: 12, cursor: 'pointer' }}
                 bodyStyle={{ padding: '20px 24px' }}
                 onClick={() => setSelectedScene(item)}
               >
