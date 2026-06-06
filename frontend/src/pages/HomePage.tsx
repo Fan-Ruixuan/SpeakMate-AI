@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card, Typography, Space } from 'antd';
 import { getSceneList } from '../api/scene';
+// 修复标黄：正确相对路径
+import Microphone from '../components/Microphone';
 
 const { Title } = Typography;
 
@@ -61,6 +63,11 @@ export default function HomePage() {
               </Space>
             </Card>
           ))}
+        </div>
+
+        {/* 挂载录音组件（第三笔核心内容） */}
+        <div style={{ textAlign: 'center', marginTop: 40 }}>
+          <Microphone />
         </div>
       </div>
     </div>
