@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { MessageOutlined, RobotOutlined, SendOutlined } from '@ant-design/icons';
 import { Avatar } from 'antd';
 import { Input } from 'antd';
@@ -17,7 +17,7 @@ interface ChatPanelProps {
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState<string>('');
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -30,9 +30,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
   }, [messages, scrollToBottom]);
 
   const handleSend = () => {
-    if (inputRef.current?.value.trim()) {
-      onSendMessage(inputRef.current.value.trim());
-      inputRef.current.value = '';
+    if (inputValue.trim()) {
+      onSendMessage(inputValue.trim());
+      setInputValue('');
     }
   };
 
@@ -115,14 +115,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
       
       <div style={{ padding: '16px', background: '#fff', borderTop: '1px solid #e8e8e8' }}>
         <Input
-          ref={(ref) => {
-            // 将 Ant Design 的 InputRef 转换为 HTMLInputElement
-            if (ref) {
-              (inputRef as any).current = ref.input || ref.nativeElement || ref;
-            }
-          }}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
           placeholder="输入消息或点击录音..."
-          suffix={<SendOutlined style={{ color: '#1890ff' }} />}
+          suffix={<SendOutlined style={{ color: '#1890ff', cursor: 'pointer' }} onClick={handleSend} />}
           onPressEnter={handleKeyDown}
           style={{ borderRadius: '24px' }}
         />
