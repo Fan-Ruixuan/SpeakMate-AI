@@ -13,6 +13,8 @@ app.use(cors);
 
 // 路由
 app.use('/api', routes);
+app.use('/api/user', require('./routes/userRoute'));
+app.use('/api/scene', require('./routes/sceneRoute'));
 
 // 全局异常
 app.use(errorMiddleware);
