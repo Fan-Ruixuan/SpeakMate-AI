@@ -13,6 +13,7 @@ app.use(cors);
 // 路由顺序修复
 app.use('/api/user', require('./routes/userRoute'));
 app.use('/api/scene', require('./routes/sceneRoute'));
+app.use('/api/pronunciation', require('./routes/pronunciationRoute'));
 const routes = require('./routes');
 app.use('/api', routes);
 
