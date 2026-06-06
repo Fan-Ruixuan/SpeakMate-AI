@@ -5,6 +5,7 @@ import { getSceneList } from '../api/scene';
 import type { PronunciationEvaluationResult } from '../api/pronunciation';
 import Microphone from '../components/Microphone';
 import ChatPanel, { type ChatMessage } from '../components/ChatPanel';
+import PronunciationScorePopup from '../components/PronunciationScorePopup';
 
 const { Title } = Typography;
 
@@ -19,6 +20,7 @@ export default function HomePage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [evaluationResult, setEvaluationResult] = useState<PronunciationEvaluationResult | null>(null);
   const [selectedScene, setSelectedScene] = useState<SceneItem | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const fetchScenes = async () => {
@@ -53,6 +55,11 @@ export default function HomePage() {
 
   const handleEvaluationComplete = (result: PronunciationEvaluationResult) => {
     setEvaluationResult(result);
+    setShowPopup(true);
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
   };
 
   const handleSendMessage = (content: string) => {
@@ -215,6 +222,14 @@ export default function HomePage() {
         <div style={{ marginTop: 30 }}>
           <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
         </div>
+
+        {evaluationResult && (
+          <PronunciationScorePopup
+            visible={showPopup}
+            onCancel={handleClosePopup}
+            evaluationResult={evaluationResult}
+          />
+        )}
       </div>
     </div>
   );
