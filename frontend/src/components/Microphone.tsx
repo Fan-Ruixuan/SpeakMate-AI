@@ -62,18 +62,31 @@ const Microphone = () => {
     });
   }, []);
 
-  return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <Button
-        type="primary"
-        danger={isRecording}
-        onClick={isRecording ? stopRecord : startRecord}
-        size="large"
-      >
-        {isRecording ? '停止录音' : '开始录音'}
-      </Button>
-    </div>
-  );
+  // 对外暴露：获取标准音频File，用于上传ASR接口
+  const getAudioFile = useCallback(async () => {
+    const blob = await stopRecord();
+    if (!blob) return null;
+    return new File([blob], 'record.webm', { type: 'audio/webm' });
+  }, [stopRecord]);
+
+  return {
+    isRecording,
+    startRecord,
+    stopRecord,
+    getAudioFile,
+    render: (
+      <div style={{ textAlign: 'center', padding: '20px' }}>
+        <Button
+          type="primary"
+          danger={isRecording}
+          onClick={isRecording ? stopRecord : startRecord}
+          size="large"
+        >
+          {isRecording ? '停止录音' : '开始录音'}
+        </Button>
+      </div>
+    )
+  };
 };
 
 export default Microphone;
