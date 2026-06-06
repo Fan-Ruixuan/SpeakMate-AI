@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('./middlewares/corsMid');
 const errorMiddleware = require('./middlewares/errMid');
 const { initDB } = require('./db/dbInit');
-const routes = require('./routes');
 
 const app = express();
 const PORT = 3000;
@@ -11,13 +10,16 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cors);
 
-// 路由
+// 路由顺序修复
+app.use('/api/user', require('./routes/userRoute'));
+app.use('/api/scene', require('./routes/sceneRoute'));
+const routes = require('./routes');
 app.use('/api', routes);
 
-// 全局异常
+// 异常中间件
 app.use(errorMiddleware);
 
-// 初始化数据库
+// 初始化数据库（建表）
 initDB();
 
 app.listen(PORT, () => {
