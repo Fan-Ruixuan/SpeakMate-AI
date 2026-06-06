@@ -1,2 +1,16 @@
 import request from '../utils/request';
-export const getSceneList = () => request.get('/api/scene/list');
+
+interface ApiResponse<T> {
+  code: number;
+  data: T;
+  msg: string;
+}
+
+interface SceneItem {
+  sid: number;
+  scene_name: string;
+  prompt: string;
+}
+
+export const getSceneList = () =>
+  request.get<any, ApiResponse<SceneItem[]>>('/api/scene/list');
