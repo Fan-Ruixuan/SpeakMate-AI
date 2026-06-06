@@ -1,8 +1,6 @@
-const corsMid = (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
+const errorMiddleware = (err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ code: 500, msg: 'Internal server error' });
 };
 
-module.exports = corsMid;
+module.exports = errorMiddleware;

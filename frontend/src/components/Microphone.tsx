@@ -1,12 +1,19 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Button, message } from 'antd';
 import { uploadAudioAsr } from '../api/scene';
+import { evaluatePronunciation, type PronunciationEvaluationResult } from '../api/pronunciation';
 
 interface MicrophoneProps {
   onTranscribeSuccess?: (text: string) => void;
+  onEvaluationComplete?: (result: PronunciationEvaluationResult) => void;
+  referenceText?: string;
 }
 
-const Microphone: React.FC<MicrophoneProps> = ({ onTranscribeSuccess }) => {
+const Microphone: React.FC<MicrophoneProps> = ({ 
+  onTranscribeSuccess, 
+  onEvaluationComplete,
+  referenceText 
+}) => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -147,24 +154,44 @@ const Microphone: React.FC<MicrophoneProps> = ({ onTranscribeSuccess }) => {
 
     try {
       setLoading(true);
-      const res = await uploadAudioAsr(file);
-      console.log('✅ ASR接口返回数据：', res);
 
-      if (res.code === 200 && res.data) {
-        const data = res.data as string | { text?: string };
-        let text: string;
+      // 1. ASR 语音识别
+      const asrRes = await uploadAudioAsr(file);
+      console.log('✅ ASR接口返回数据：', asrRes);
+
+      let recognizedText = '';
+      if (asrRes.code === 200 && asrRes.data) {
+        const data = asrRes.data as string | { text?: string };
         if (typeof data === 'object' && data !== null) {
-          text = data.text || JSON.stringify(data);
+          recognizedText = data.text || JSON.stringify(data);
         } else {
-          text = String(data);
+          recognizedText = String(data);
         }
-        onTranscribeSuccess?.(text);
+        onTranscribeSuccess?.(recognizedText);
         message.success('语音识别成功');
       } else {
-        message.warning(res.msg || '语音识别结果为空');
+        message.warning(asrRes.msg || '语音识别结果为空');
+      }
+
+      // 2. 发音评测
+      if (onEvaluationComplete && referenceText) {
+        try {
+          const evalRes = await evaluatePronunciation(file, referenceText);
+          console.log('✅ 发音评测返回数据：', evalRes);
+
+          if (evalRes.code === 200 && evalRes.data) {
+            onEvaluationComplete(evalRes.data);
+            message.success('发音评测完成');
+          } else {
+            message.warning(evalRes.msg || '发音评测结果为空');
+          }
+        } catch (evalErr: any) {
+          console.error('发音评测失败：', evalErr.response?.data || evalErr.message || evalErr);
+          message.warning('发音评测服务暂时不可用');
+        }
       }
     } catch (err: any) {
-      console.error(' ASR识别失败详情：', err.response?.data || err.message || err);
+      console.error('❌ ASR识别失败详情：', err.response?.data || err.message || err);
       if (!err.response) {
         message.error('接口连接失败，请检查后端服务、端口和跨域配置');
       } else if (err.response?.status === 400) {
@@ -175,7 +202,7 @@ const Microphone: React.FC<MicrophoneProps> = ({ onTranscribeSuccess }) => {
     } finally {
       setLoading(false);
     }
-  }, [loading, isRecording, stopRecordAndGetFile, onTranscribeSuccess]);
+  }, [loading, isRecording, stopRecordAndGetFile, onTranscribeSuccess, onEvaluationComplete, referenceText]);
 
   useEffect(() => {
     return () => {
