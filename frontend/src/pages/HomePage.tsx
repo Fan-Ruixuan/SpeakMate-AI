@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Card, Typography, Space } from 'antd';
+import { Card, Typography, Space, Progress, Tag, Divider } from 'antd';
+import { StarOutlined } from '@ant-design/icons';
 import { getSceneList } from '../api/scene';
+import type { PronunciationEvaluationResult } from '../api/pronunciation';
 import Microphone from '../components/Microphone';
 import ChatPanel, { type ChatMessage } from '../components/ChatPanel';
 
@@ -15,6 +17,8 @@ interface SceneItem {
 export default function HomePage() {
   const [scenes, setScenes] = useState<SceneItem[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [evaluationResult, setEvaluationResult] = useState<PronunciationEvaluationResult | null>(null);
+  const [selectedScene, setSelectedScene] = useState<SceneItem | null>(null);
 
   useEffect(() => {
     const fetchScenes = async () => {
@@ -45,6 +49,10 @@ export default function HomePage() {
       };
       setMessages((prev) => [...prev, aiMessage]);
     }, 1000);
+  };
+
+  const handleEvaluationComplete = (result: PronunciationEvaluationResult) => {
+    setEvaluationResult(result);
   };
 
   const handleSendMessage = (content: string) => {
@@ -112,6 +120,7 @@ export default function HomePage() {
                 hoverable
                 style={{ borderRadius: 12 }}
                 bodyStyle={{ padding: '20px 24px' }}
+                onClick={() => setSelectedScene(item)}
               >
                 <Space direction="vertical" size={8} style={{ width: '100%' }}>
                   <Title level={5} style={{ margin: 0 }}>
@@ -131,9 +140,61 @@ export default function HomePage() {
           )}
         </div>
 
+        {selectedScene && (
+          <Card style={{ marginTop: 24, borderRadius: 12 }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <StarOutlined style={{ color: '#1890ff' }} />
+                <strong>当前场景：</strong>
+                <Tag color="blue">{selectedScene.scene_name}</Tag>
+              </div>
+              <p style={{ color: '#666', margin: 0 }}>参考文本：{selectedScene.prompt}</p>
+            </Space>
+          </Card>
+        )}
+
         <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <Microphone onTranscribeSuccess={handleTranscribeSuccess} />
+          <Microphone 
+            onTranscribeSuccess={handleTranscribeSuccess}
+            onEvaluationComplete={handleEvaluationComplete}
+            referenceText={selectedScene?.prompt}
+          />
         </div>
+
+        {evaluationResult && (
+          <Card style={{ marginTop: 24, borderRadius: 12 }}>
+            <Title level={5}>发音评测结果</Title>
+            <div style={{ display: 'flex', gap: 24, marginTop: 16 }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ marginBottom: 8 }}>总分</p>
+                <Progress percent={evaluationResult.totalScore} size="small" strokeColor="#1890ff" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ marginBottom: 8 }}>流利度</p>
+                <Progress percent={evaluationResult.fluency} size="small" strokeColor="#52c41a" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ marginBottom: 8 }}>准确度</p>
+                <Progress percent={evaluationResult.accuracy} size="small" strokeColor="#faad14" />
+              </div>
+            </div>
+            {evaluationResult.phonemeErrors.length > 0 && (
+              <>
+                <Divider style={{ margin: '16px 0' }} />
+                <p style={{ fontWeight: 500 }}>发音问题：</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {evaluationResult.phonemeErrors.map((error, index) => (
+                    <Tag key={index} color="red">
+                      {error.word}: /{error.actualPhoneme}/ → /{error.targetPhoneme}/
+                    </Tag>
+                  ))}
+                </div>
+              </>
+            )}
+            <Divider style={{ margin: '16px 0' }} />
+            <p style={{ color: '#52c41a' }}>{evaluationResult.suggestion}</p>
+          </Card>
+        )}
 
         <div style={{ marginTop: 30 }}>
           <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
