@@ -7,6 +7,7 @@ interface MicrophoneProps {
   onTranscribeSuccess?: (text: string) => void;
 }
 
+// 补全React导入，根除FC类型报错
 const Microphone: React.FC<MicrophoneProps> = ({ onTranscribeSuccess }) => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -50,44 +51,64 @@ const Microphone: React.FC<MicrophoneProps> = ({ onTranscribeSuccess }) => {
     }
   }, [isRecording, loading]);
 
-  // 停止录音
-  const stopRecord = useCallback(async () => {
-    return new Promise<Blob | null>((resolve) => {
-      if (!recorderRef.current || !isRecording) return resolve(null);
+  // 停止录音（修复Promise提前return导致无响应BUG）
+  const stopRecord = useCallback((): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      // 修复：不return，仅兜底resolve，阻断流程卡死
+      if (!recorderRef.current || !isRecording) {
+        resolve(null);
+        return;
+      }
+
+      // 超时兜底，彻底解决停止无响应、卡死
+      const timeoutTimer = setTimeout(() => {
+        streamRef.current?.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        resolve(null);
+        message.error('录音停止超时，请重试');
+      }, 2000);
+
       recorderRef.current.onstop = () => {
+        clearTimeout(timeoutTimer);
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         streamRef.current?.getTracks().forEach(track => track.stop());
         setIsRecording(false);
         message.success('录音结束');
         resolve(audioBlob);
       };
+
       recorderRef.current.stop();
     });
   }, [isRecording]);
 
-  // 导出音频文件（PR6 ）
+  // 导出音频文件（PR6 保留）
   const getAudioFile = useCallback(async () => {
     const blob = await stopRecord();
     if (!blob) return null;
     return new File([blob], 'record.webm', { type: 'audio/webm' });
   }, [stopRecord]);
 
-  // PR7 ：停止录音后自动上传（安全时序）
+  // PR7 停止录音+自动上传ASR（修复时序、状态冲突）
   const handleStopAndUpload = useCallback(async () => {
-    if (loading || isRecording) return;
+    // 仅拦截上传中，允许正常停止录音
+    if (loading) return;
 
     const blob = await stopRecord();
-    if (!blob) return;
+    if (!blob) {
+      message.warning('未获取到录音数据，请重新录音');
+      return;
+    }
 
     const file = new File([blob], 'record.webm', { type: 'audio/webm' });
 
     try {
       setLoading(true);
       const res = await uploadAudioAsr(file);
-      // 回调父组件回显文本
       if (res.code === 200 && res.data) {
         onTranscribeSuccess?.(res.data);
         message.success('语音识别成功');
+      } else {
+        message.warning('语音识别结果为空');
       }
     } catch (err) {
       message.error('音频上传识别失败');
@@ -95,13 +116,19 @@ const Microphone: React.FC<MicrophoneProps> = ({ onTranscribeSuccess }) => {
     } finally {
       setLoading(false);
     }
-  }, [loading, isRecording, stopRecord, onTranscribeSuccess]);
+  }, [loading, stopRecord, onTranscribeSuccess]);
 
-  // 页面销毁释放资源
+  // 页面销毁强制释放资源，杜绝内存泄漏
   useEffect(() => {
     return () => {
-      if (recorderRef.current) recorderRef.current.stop();
-      if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
+      if (recorderRef.current) {
+        recorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      setIsRecording(false);
+      setLoading(false);
     };
   }, []);
 
@@ -110,7 +137,6 @@ const Microphone: React.FC<MicrophoneProps> = ({ onTranscribeSuccess }) => {
       <Button
         type="primary"
         danger={isRecording}
-        // 核心修复：停止时走【停止+上传】统一逻辑
         onClick={isRecording ? handleStopAndUpload : startRecord}
         size="large"
         loading={loading}
