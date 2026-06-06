@@ -15,13 +15,23 @@ interface SceneItem {
 export const getSceneList = () =>
   request.get<any, ApiResponse<SceneItem[]>>('/api/scene/list');
 
-// ASR音频语音识别上传接口（PR7 第一笔）
-export const uploadAudioAsr = (file: File) => {
+// ASR音频语音识别上传接口
+// 使用原生 fetch + 标准 FormData，不手动设置 Content-Type，浏览器自动填充 boundary
+export const uploadAudioAsr = async (file: File): Promise<ApiResponse<string>> => {
   const formData = new FormData();
   formData.append('audio', file);
-  return request.post<any, ApiResponse<string>>('/api/asr/transcribe', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+
+  const res = await fetch('/api/asr/recognize', {
+    method: 'POST',
+    body: formData,
   });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => '');
+    const err: any = new Error(errorText || `HTTP ${res.status}`);
+    err.response = { status: res.status, data: errorText };
+    throw err;
+  }
+
+  return res.json() as Promise<ApiResponse<string>>;
 };
