@@ -13,7 +13,7 @@ interface SceneItem {
 
 export default function HomePage() {
   const [scenes, setScenes] = useState<SceneItem[]>([]);
-
+  const [transText, setTransText] = useState<string>('');
   useEffect(() => {
     const fetchScenes = async () => {
       const res = await getSceneList();
@@ -88,7 +88,13 @@ export default function HomePage() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <Microphone />
+          <Microphone onTranscribeSuccess={(text) => setTransText(text)} />
+          {transText && (
+            <Card style={{ marginTop: 30, borderRadius: 12 }}>
+              <Title level={5}>语音识别结果</Title>
+              <p style={{ fontSize: 15, color: '#333' }}>{transText}</p>
+            </Card>
+          )}
         </div>
       </div>
     </div>
