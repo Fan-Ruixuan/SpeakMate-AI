@@ -1,33 +1,27 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button, message } from 'antd';
 
 const Microphone = () => {
-  // 录音状态
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  // 媒体流 & 录制实例 ref 持久化
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
 
   // 开始录音
   const startRecord = useCallback(async () => {
-    try {
-      // WebRTC 获取麦克风权限
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-      streamRef.current = stream;
+    // 防重复点击
+    if (isRecording) return;
+    const audioConfig: MediaStreamConstraints = {
+      audio: true
+    };
 
-      // 初始化录制器
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(audioConfig);
+      streamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       recorderRef.current = recorder;
       chunksRef.current = [];
 
-      // 收集音频分片
       recorder.ondataavailable = (e) => {
         if (e.data.size) {
           chunksRef.current.push(e.data);
@@ -37,32 +31,35 @@ const Microphone = () => {
       recorder.start();
       setIsRecording(true);
       message.success('开始录音');
-    } catch (err) {
-      message.error('麦克风授权失败，请允许麦克风权限');
+    } catch (err: any) {
+      // 精准权限异常捕获
+      if (err.name === 'NotAllowedError') {
+        message.error('麦克风权限被禁止，请在浏览器地址栏重新允许权限');
+      } else if (err.name === 'NotFoundError') {
+        message.error('未检测到麦克风设备，请检查设备连接');
+      } else {
+        message.error('麦克风授权失败，请允许麦克风权限');
+      }
       console.error(err);
     }
-  }, []);
+  }, [isRecording]);
 
   // 停止录音
   const stopRecord = useCallback(() => {
     return new Promise<Blob | null>((resolve) => {
-      if (!recorderRef.current) return resolve(null);
-
+      if (!recorderRef.current || !isRecording) return resolve(null);
       recorderRef.current.onstop = () => {
-        // 合成完整音频 Blob
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        // 关闭麦克风占用
         streamRef.current?.getTracks().forEach(track => track.stop());
         setIsRecording(false);
         message.success('录音结束');
         resolve(audioBlob);
       };
-
       recorderRef.current.stop();
     });
-  }, []);
+  }, [isRecording]);
 
-  // 对外暴露：获取标准音频File，用于上传ASR接口
+  // 第二笔核心：导出标准音频文件（供后续ASR上传使用）
   // eslint-disable-next-line no-unused-vars
   const getAudioFile = useCallback(async () => {
     const blob = await stopRecord();
@@ -70,7 +67,18 @@ const Microphone = () => {
     return new File([blob], 'record.webm', { type: 'audio/webm' });
   }, [stopRecord]);
 
-  // 【唯一改动：换回标准JSX返回，修复爆红】
+  // 页面销毁强制释放麦克风资源，杜绝设备占用、内存泄漏
+  useEffect(() => {
+    return () => {
+      if (recorderRef.current) {
+        recorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
   return (
     <div style={{ textAlign: 'center', padding: '20px' }}>
       <Button
