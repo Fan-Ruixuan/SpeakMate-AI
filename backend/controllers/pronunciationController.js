@@ -5,16 +5,12 @@ exports.evaluatePronunciation = async (req, res) => {
     const audioFile = req.file;
     const referenceText = req.body.referenceText;
 
-    if (!audioFile) {
-      return res.json(result.fail('Audio file is required'));
-    }
-
     if (!referenceText || referenceText.trim() === '') {
       return res.json(result.fail('Reference text is required'));
     }
 
     console.log('Received pronunciation evaluation request:', {
-      audioSize: audioFile.size,
+      audioSize: audioFile ? audioFile.size : 'no audio',
       referenceText: referenceText.trim().substring(0, 50) + '...'
     });
 

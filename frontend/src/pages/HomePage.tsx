@@ -189,6 +189,10 @@ export default function HomePage() {
                 <p style={{ marginBottom: 8 }}>准确度</p>
                 <Progress percent={evaluationResult.accuracy} size="small" strokeColor="#faad14" />
               </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ marginBottom: 8 }}>完整度</p>
+                <Progress percent={evaluationResult.completeness} size="small" strokeColor="#722ed1" />
+              </div>
             </div>
             {evaluationResult.phonemeErrors.length > 0 && (
               <>
