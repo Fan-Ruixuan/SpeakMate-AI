@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, Typography, Space } from 'antd';
 import { getSceneList } from '../api/scene';
 import Microphone from '../components/Microphone';
+import ChatPanel, { type ChatMessage } from '../components/ChatPanel';
 
 const { Title } = Typography;
 
@@ -13,7 +14,8 @@ interface SceneItem {
 
 export default function HomePage() {
   const [scenes, setScenes] = useState<SceneItem[]>([]);
-  const [transText, setTransText] = useState<string>('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+
   useEffect(() => {
     const fetchScenes = async () => {
       const res = await getSceneList();
@@ -23,6 +25,48 @@ export default function HomePage() {
     };
     fetchScenes();
   }, []);
+
+  const handleTranscribeSuccess = (text: string) => {
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      content: text,
+      type: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages((prev) => [...prev, userMessage]);
+
+    setTimeout(() => {
+      const aiMessage: ChatMessage = {
+        id: `msg-${Date.now()}-ai`,
+        content: `I understand you said: "${text}". Would you like to practice more?`,
+        type: 'ai',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    }, 1000);
+  };
+
+  const handleSendMessage = (content: string) => {
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      content,
+      type: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages((prev) => [...prev, userMessage]);
+
+    setTimeout(() => {
+      const aiMessage: ChatMessage = {
+        id: `msg-${Date.now()}-ai`,
+        content: `You typed: "${content}". This is a great practice!`,
+        type: 'ai',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    }, 1000);
+  };
 
   return (
     <div style={{
@@ -88,13 +132,11 @@ export default function HomePage() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <Microphone onTranscribeSuccess={(text) => setTransText(text)} />
-          {transText && (
-            <Card style={{ marginTop: 30, borderRadius: 12 }}>
-              <Title level={5}>语音识别结果</Title>
-              <p style={{ fontSize: 15, color: '#333' }}>{transText}</p>
-            </Card>
-          )}
+          <Microphone onTranscribeSuccess={handleTranscribeSuccess} />
+        </div>
+
+        <div style={{ marginTop: 30 }}>
+          <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
         </div>
       </div>
     </div>
