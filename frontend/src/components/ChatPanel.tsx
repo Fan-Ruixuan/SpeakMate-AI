@@ -74,9 +74,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
                 try {
                   const data = JSON.parse(nextMessage.content) as GrammarCorrectionResult;
                   grammarErrors = data.errors || [];
+                  console.log('Grammar errors found for message:', msg.id, grammarErrors);
                 } catch (e) {
                   console.error('Parse grammar error failed:', e);
                 }
+              }
+              
+              if (msg.type === 'user' && grammarErrors.length > 0) {
+                console.log('Showing warning icon for message:', msg.id);
               }
               
               return (
