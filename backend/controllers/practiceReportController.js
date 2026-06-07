@@ -89,7 +89,7 @@ function generateRecentPerformance(days) {
     date.setDate(date.getDate() - i);
     
     performance.push({
-      date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+      date: `${date.getMonth() + 1}月${date.getDate()}日`,
       score: Math.floor(Math.random() * 20) + 75,
       dialogues: Math.floor(Math.random() * 8) + 4,
     });
