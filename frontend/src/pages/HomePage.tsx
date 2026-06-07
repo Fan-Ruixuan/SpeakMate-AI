@@ -75,11 +75,8 @@ export default function HomePage() {
 
     // 调用语法纠错 API
     try {
-      console.log('Calling grammar correction API with:', content);
       const res = await correctGrammar(content);
-      console.log('Grammar correction response:', res);
       if (res.code === 200 && res.data && res.data.errors.length > 0) {
-        console.log('Found grammar errors:', res.data.errors);
         // 显示语法纠错结果
         const correctionMessage: ChatMessage = {
           id: `msg-${Date.now()}-grammar`,
@@ -88,8 +85,6 @@ export default function HomePage() {
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, correctionMessage]);
-      } else {
-        console.log('No grammar errors found');
       }
     } catch (err) {
       console.error('Grammar correction error:', err);
