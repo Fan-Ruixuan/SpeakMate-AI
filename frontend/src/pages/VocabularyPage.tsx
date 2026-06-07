@@ -114,8 +114,11 @@ const VocabularyPage = () => {
       dataIndex: 'word',
       key: 'word',
       width: 120,
+      align: 'center' as const,
       render: (text: string) => (
-        <span className="font-bold text-blue-600">{text}</span>
+        <span className="font-bold text-lg text-blue-600 hover:text-blue-700 transition-colors">
+          {text}
+        </span>
       ),
     },
     {
@@ -123,8 +126,9 @@ const VocabularyPage = () => {
       dataIndex: 'phonetic',
       key: 'phonetic',
       width: 150,
+      align: 'center' as const,
       render: (text: string) => (
-        <span className="text-gray-500 font-mono">{text || '-'}</span>
+        <span className="text-gray-500 font-mono text-sm">{text || '-'}</span>
       ),
     },
     {
@@ -132,21 +136,25 @@ const VocabularyPage = () => {
       dataIndex: 'errorCount',
       key: 'errorCount',
       width: 100,
-      align: 'center',
-      render: (count: number) => (
-        <Tag color={count > 5 ? 'red' : count > 2 ? 'orange' : 'green'}>
-          {count} 次
-        </Tag>
-      ),
+      align: 'center' as const,
+      render: (count: number) => {
+        const color = count > 5 ? 'red' : count > 2 ? 'orange' : 'green';
+        return (
+          <Tag color={color} className="font-medium">
+            {count} 次
+          </Tag>
+        );
+      },
     },
     {
       title: '错误例句',
       dataIndex: 'wrongSentence',
       key: 'wrongSentence',
       width: 250,
+      ellipsis: true,
       render: (text: string) => (
-        <Tooltip title={text}>
-          <span className="truncate text-gray-600">{text || '-'}</span>
+        <Tooltip title={text || '无'} placement="top">
+          <span className="text-gray-600">{text || '-'}</span>
         </Tooltip>
       ),
     },
@@ -155,9 +163,10 @@ const VocabularyPage = () => {
       dataIndex: 'addedAt',
       key: 'addedAt',
       width: 150,
+      align: 'center' as const,
       render: (text: string) => (
-        <span className="text-gray-500">
-          {text ? new Date(text).toLocaleDateString() : '-'}
+        <span className="text-gray-500 text-sm">
+          {text ? new Date(text).toLocaleString('zh-CN') : '-'}
         </span>
       ),
     },
@@ -165,13 +174,14 @@ const VocabularyPage = () => {
       title: '操作',
       key: 'action',
       width: 80,
-      align: 'center',
-      render: (_: any, record: VocabularyItem) => (
+      align: 'center' as const,
+      render: (_: unknown, record: VocabularyItem) => (
         <Button
           danger
           size="small"
           icon={<Trash2 />}
           onClick={() => handleDelete(record.id)}
+          className="hover:bg-red-600 transition-colors"
         >
           删除
         </Button>
@@ -180,128 +190,188 @@ const VocabularyPage = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          <BookOpen className="text-blue-600" />
-          生词本
-        </h1>
-        <p className="text-gray-500 mt-1">管理您在练习中遇到的生词</p>
-      </div>
-
-      <Row gutter={16} className="mb-6">
-        <Col span={6}>
-          <Card className="text-center">
-            <Statistic
-              title="生词总数"
-              value={stats?.totalWords || 0}
-              prefix={<BookOpen className="text-blue-500" />}
-              className="text-3xl"
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card className="text-center">
-            <Statistic
-              title="错误累计"
-              value={stats?.totalErrors || 0}
-              prefix={<AlertCircle className="text-orange-500" />}
-              className="text-3xl"
-            />
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card title="高频错词 TOP5">
-            <div className="flex flex-wrap gap-2">
-              {stats?.topErrorWords.map((item, index) => (
-                <div
-                  key={item.word}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-full"
-                >
-                  <span className="text-xs text-gray-400">#{index + 1}</span>
-                  <span className="font-medium">{item.word}</span>
-                  <Tag color="red">{item.errors}次</Tag>
-                </div>
-              ))}
-              {(!stats?.topErrorWords || stats.topErrorWords.length === 0) && (
-                <span className="text-gray-400">暂无数据</span>
-              )}
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <Card
-        className="mb-4"
-        extra={
-          <Button
-            type="primary"
-            icon={<Plus />}
-            onClick={() => setModalVisible(true)}
-          >
-            添加生词
-          </Button>
-        }
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="text-gray-400" />
-          <span className="text-gray-600">生词列表</span>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <BookOpen className="text-blue-600 text-3xl" />
+            生词本
+          </h1>
+          <p className="text-gray-500 mt-2 text-sm">管理您在练习中遇到的生词，掌握每一个知识点</p>
         </div>
-        <Table
-          dataSource={dataSource}
-          columns={columns as any}
-          loading={loading}
-          rowKey="id"
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            pageSizeOptions: ['10', '20', '30', '50'],
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条`,
-            onChange: async (page, size) => {
-              setCurrentPage(page);
-              setPageSize(size);
-              await fetchVocabularyList();
-            },
-          }}
-          locale={{
-            emptyText: '暂无生词记录',
-          }}
-        />
-      </Card>
 
-      <Modal
-        title="添加生词"
-        open={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          form.resetFields();
-        }}
-        footer={[
-          <Button key="back" onClick={() => setModalVisible(false)}>
-            取消
-          </Button>,
-          <Button key="submit" type="primary" onClick={handleAdd}>
-            确定
-          </Button>,
-        ]}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="word"
-            label="单词"
-            rules={[{ required: true, message: '请输入单词' }]}
-          >
-            <Input placeholder="请输入英文单词" />
-          </Form.Item>
-          <Form.Item name="phonetic" label="音标">
-            <Input placeholder="可选，输入音标" />
-          </Form.Item>
-          <Form.Item name="wrongSent" label="错误例句">
-            <Input.TextArea placeholder="可选，输入包含该单词的错误句子" />
-          </Form.Item>
-        </Form>
-      </Modal>
+        {/* Stats Cards */}
+        <Row gutter={16} className="mb-6">
+          <Col span={6}>
+            <Card
+              className="shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              bodyStyle={{ textAlign: 'center' }}
+            >
+              <Statistic
+                title="生词总数"
+                value={stats?.totalWords || 0}
+                prefix={<BookOpen className="text-blue-500" />}
+                valueStyle={{ fontSize: '28px', fontWeight: 'bold', color: '#1890ff' }}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card
+              className="shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              bodyStyle={{ textAlign: 'center' }}
+            >
+              <Statistic
+                title="错误累计"
+                value={stats?.totalErrors || 0}
+                prefix={<AlertCircle className="text-orange-500" />}
+                valueStyle={{ fontSize: '28px', fontWeight: 'bold', color: '#fa8c16' }}
+              />
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card
+              title="高频错词 TOP5"
+              className="shadow-sm border border-gray-100"
+              titleStyle={{ fontWeight: '600', color: '#595959' }}
+            >
+              <div className="flex flex-wrap gap-3">
+                {stats?.topErrorWords.map((item, index) => (
+                  <div
+                    key={item.word}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-50 to-orange-50 rounded-full border border-red-100"
+                  >
+                    <span className="text-xs text-gray-400 font-medium">#{index + 1}</span>
+                    <span className="font-medium text-gray-700">{item.word}</span>
+                    <Tag color="red" className="text-xs">{item.errors}次</Tag>
+                  </div>
+                ))}
+                {(!stats?.topErrorWords || stats.topErrorWords.length === 0) && (
+                  <span className="text-gray-400 text-sm">暂无数据</span>
+                )}
+              </div>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Vocabulary Table */}
+        <Card
+          className="shadow-sm border border-gray-100"
+          extra={
+            <Button
+              type="primary"
+              icon={<Plus />}
+              onClick={() => setModalVisible(true)}
+              className="bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
+              添加生词
+            </Button>
+          }
+          title={
+            <div className="flex items-center gap-2 pb-1">
+              <BarChart3 className="text-gray-400" />
+              <span className="text-gray-700 font-medium">生词列表</span>
+            </div>
+          }
+        >
+          <Table
+            dataSource={dataSource}
+            columns={columns}
+            loading={loading}
+            rowKey="id"
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              pageSizeOptions: ['10', '20', '30', '50'],
+              showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 条记录`,
+              onChange: async (page, size) => {
+                setCurrentPage(page);
+                setPageSize(size);
+                await fetchVocabularyList();
+              },
+            }}
+            locale={{
+              emptyText: (
+                <div className="py-12 text-center">
+                  <BookOpen className="text-gray-300 text-4xl mx-auto mb-4" />
+                  <p className="text-gray-400">暂无生词记录</p>
+                  <p className="text-gray-400 text-sm mt-1">点击上方按钮添加生词</p>
+                </div>
+              ),
+            }}
+            className="mt-4"
+            bordered
+            rowClassName="hover:bg-gray-50 transition-colors"
+          />
+        </Card>
+
+        {/* Add Modal */}
+        <Modal
+          title="添加生词"
+          open={modalVisible}
+          onCancel={() => {
+            setModalVisible(false);
+            form.resetFields();
+          }}
+          footer={[
+            <Button key="back" onClick={() => setModalVisible(false)} className="text-gray-600">
+              取消
+            </Button>,
+            <Button
+              key="submit"
+              type="primary"
+              onClick={handleAdd}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              确定
+            </Button>,
+          ]}
+          centered
+          width={500}
+        >
+          <Form form={form} layout="vertical">
+            <Form.Item
+              name="word"
+              label="单词"
+              rules={[{ required: true, message: '请输入单词' }]}
+              labelCol={{ span: 6 }}
+              wrapperCol={{ span: 18 }}
+            >
+              <Input
+                placeholder="请输入英文单词"
+                className="w-full"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="phonetic"
+              label="音标"
+              labelCol={{ span: 6 }}
+              wrapperCol={{ span: 18 }}
+            >
+              <Input
+                placeholder="可选，输入音标（如 /wɜːrd/）"
+                className="w-full"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="wrongSent"
+              label="错误例句"
+              labelCol={{ span: 6 }}
+              wrapperCol={{ span: 18 }}
+            >
+              <Input.TextArea
+                placeholder="可选，输入包含该单词的错误句子"
+                className="w-full"
+                size="large"
+                rows={3}
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
     </div>
   );
 };
