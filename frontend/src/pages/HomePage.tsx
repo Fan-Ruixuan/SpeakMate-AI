@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, Typography, Space, Progress, Tag, Divider } from 'antd';
-import { StarOutlined, WarningOutlined } from '@ant-design/icons';
+import { Card, Typography, Space, Progress, Tag, Divider, Button } from 'antd';
+import { StarOutlined, WarningOutlined, BookOutlined, BarChartOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { getSceneList } from '../api/scene';
 import { correctGrammar } from '../api/grammar';
 import type { PronunciationEvaluationResult } from '../api/pronunciation';
@@ -17,6 +18,7 @@ interface SceneItem {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [scenes, setScenes] = useState<SceneItem[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [evaluationResult, setEvaluationResult] = useState<PronunciationEvaluationResult | null>(null);
@@ -109,9 +111,25 @@ export default function HomePage() {
       background: '#f0f2f5'
     }}>
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-        <Title level={3} style={{ marginBottom: 28 }}>
-          选择口语练习场景
-        </Title>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+          <Title level={3} style={{ margin: 0 }}>
+            选择口语练习场景
+          </Title>
+          <Space>
+            <Button 
+              icon={<BarChartOutlined />} 
+              onClick={() => navigate('/report')}
+            >
+              练习报告
+            </Button>
+            <Button 
+              icon={<BookOutlined />} 
+              onClick={() => navigate('/vocabulary')}
+            >
+              生词本
+            </Button>
+          </Space>
+        </div>
 
         <div style={{
           display: 'grid',
