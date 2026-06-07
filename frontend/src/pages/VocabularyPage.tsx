@@ -263,7 +263,7 @@ const VocabularyPage = () => {
 
       <Modal
         title="添加生词"
-        visible={modalVisible}
+        open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
