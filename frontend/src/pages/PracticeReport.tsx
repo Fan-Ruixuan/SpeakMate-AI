@@ -84,24 +84,64 @@ export default function PracticeReport() {
     // 折线图 - 最近表现趋势
     const lineChart = echarts.init(lineChartRef.current!);
     lineChart.setOption({
-      tooltip: { trigger: 'axis' },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderColor: '#eee',
+        borderWidth: 1,
+        textStyle: { color: '#333' },
+        formatter: (params: any) => {
+          let result = `<div style="font-weight:bold;margin-bottom:8px">${params[0].axisValue}</div>`;
+          params.forEach((item: any) => {
+            const value = item.seriesName === '对话数' ? Math.round(item.value / 10) : item.value;
+            result += `<div style="display:flex;justify-content:space-between;margin:4px 0">
+              <span>${item.marker} ${item.seriesName}</span>
+              <span style="font-weight:bold">${value}</span>
+            </div>`;
+          });
+          return result;
+        },
+      },
+      grid: { left: '3%', right: '4%', bottom: '18%', top: '10%', containLabel: true },
       xAxis: {
         type: 'category',
         data: report.recentPerformance.map(item => item.date),
+        axisLine: { lineStyle: { color: '#ddd' } },
+        axisLabel: {
+          color: '#666',
+          interval: 0,
+          rotate: 30,
+          fontSize: 11,
+        },
       },
-      yAxis: { type: 'value', min: 0, max: 100 },
+      yAxis: {
+        type: 'value',
+        min: 0,
+        max: 100,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { lineStyle: { color: '#eee', type: 'dashed' } },
+        axisLabel: { color: '#666' },
+      },
       series: [
         {
           name: '得分',
           type: 'line',
           data: report.recentPerformance.map(item => item.score),
           smooth: true,
+          symbol: 'circle',
+          symbolSize: 8,
           itemStyle: { color: '#1890ff' },
+          lineStyle: { width: 3 },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(24,144,255,0.3)' },
+              { offset: 0, color: 'rgba(24,144,255,0.4)' },
               { offset: 1, color: 'rgba(24,144,255,0.05)' },
             ]),
+          },
+          emphasis: {
+            focus: 'series',
+            itemStyle: { shadowBlur: 10, shadowColor: 'rgba(24,144,255,0.5)' },
           },
         },
         {
@@ -109,61 +149,153 @@ export default function PracticeReport() {
           type: 'line',
           data: report.recentPerformance.map(item => item.dialogues * 10),
           smooth: true,
+          symbol: 'diamond',
+          symbolSize: 8,
           itemStyle: { color: '#52c41a' },
+          lineStyle: { width: 3 },
+          emphasis: {
+            focus: 'series',
+            itemStyle: { shadowBlur: 10, shadowColor: 'rgba(82,196,26,0.5)' },
+          },
         },
       ],
-      legend: { data: ['得分', '对话数'] },
+      legend: {
+        data: ['得分', '对话数'],
+        bottom: 0,
+        icon: 'roundRect',
+        itemWidth: 12,
+        itemHeight: 4,
+      },
     });
 
     // 柱状图 - 周趋势
     const barChart = echarts.init(barChartRef.current!);
     barChart.setOption({
-      tooltip: { trigger: 'axis' },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderColor: '#eee',
+        borderWidth: 1,
+        textStyle: { color: '#333' },
+        axisPointer: { type: 'shadow' },
+      },
+      grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
       xAxis: {
         type: 'category',
         data: report.weeklyTrend.map(item => item.week),
+        axisLine: { lineStyle: { color: '#ddd' } },
+        axisLabel: { color: '#666' },
       },
-      yAxis: { type: 'value' },
+      yAxis: {
+        type: 'value',
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { lineStyle: { color: '#eee', type: 'dashed' } },
+        axisLabel: { color: '#666' },
+      },
       series: [
         {
           name: '会话数',
           type: 'bar',
           data: report.weeklyTrend.map(item => item.sessions),
-          itemStyle: { color: '#722ed1' },
+          barWidth: '35%',
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#9254de' },
+              { offset: 1, color: '#722ed1' },
+            ]),
+            borderRadius: [4, 4, 0, 0],
+          },
+          emphasis: {
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#b37feb' },
+                { offset: 1, color: '#9254de' },
+              ]),
+            },
+          },
         },
         {
           name: '平均得分',
           type: 'bar',
           data: report.weeklyTrend.map(item => item.avgScore),
-          itemStyle: { color: '#1890ff' },
+          barWidth: '35%',
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#40a9ff' },
+              { offset: 1, color: '#1890ff' },
+            ]),
+            borderRadius: [4, 4, 0, 0],
+          },
+          emphasis: {
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#69c0ff' },
+                { offset: 1, color: '#40a9ff' },
+              ]),
+            },
+          },
         },
       ],
-      legend: { data: ['会话数', '平均得分'] },
+      legend: {
+        data: ['会话数', '平均得分'],
+        bottom: 0,
+        icon: 'roundRect',
+        itemWidth: 12,
+        itemHeight: 4,
+      },
     });
 
     // 饼图 - 错误分布
     const pieChart = echarts.init(pieChartRef.current!);
     pieChart.setOption({
-      tooltip: { trigger: 'item', formatter: '{a} <br/>{b}: {c} ({d}%)' },
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderColor: '#eee',
+        borderWidth: 1,
+        textStyle: { color: '#333' },
+        formatter: '{b}: {c}次 ({d}%)',
+      },
       series: [
         {
           name: '错误类型',
           type: 'pie',
-          radius: ['40%', '70%'],
-          avoidLabelOverlap: false,
+          radius: ['45%', '75%'],
+          center: ['50%', '50%'],
+          avoidLabelOverlap: true,
           itemStyle: {
-            borderRadius: 10,
+            borderRadius: 8,
             borderColor: '#fff',
             borderWidth: 2,
           },
-          label: { show: true, formatter: '{b}: {d}%' },
+          label: {
+            show: true,
+            formatter: '{b}\n{d}%',
+            fontSize: 12,
+            color: '#666',
+          },
+          labelLine: {
+            show: true,
+            length: 15,
+            length2: 10,
+            smooth: true,
+          },
+          emphasis: {
+            label: { show: true, fontSize: 14, fontWeight: 'bold' },
+            itemStyle: {
+              shadowBlur: 20,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+            },
+          },
           data: report.errorDistribution.map(item => ({
             value: item.count,
             name: item.label,
           })),
         },
       ],
-      color: ['#f5222d', '#fa8c16', '#1890ff', '#52c41a', '#722ed1'],
+      color: ['#ff4d4f', '#fa8c16', '#1890ff', '#52c41a', '#722ed1'],
     });
 
     // 响应式
