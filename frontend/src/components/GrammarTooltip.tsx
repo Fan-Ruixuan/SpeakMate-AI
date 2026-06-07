@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tooltip } from 'antd';
-import { EditOutlined, WarningOutlined } from '@ant-design/icons';
+import { WarningOutlined } from '@ant-design/icons';
 import type { GrammarError } from '../api/grammar';
 
 interface GrammarTooltipProps {
@@ -27,108 +27,67 @@ const GrammarTooltip: React.FC<GrammarTooltipProps> = ({ errors, children }) => 
   const getErrorTypeLabel = (type: string) => {
     switch (type) {
       case 'grammar':
-        return '语法错误';
+        return '语法';
       case 'spelling':
-        return '拼写错误';
+        return '拼写';
       case 'wording':
-        return '用词不当';
+        return '用词';
       case 'punctuation':
-        return '标点错误';
+        return '标点';
       default:
-        return '未知错误';
+        return '其他';
     }
   };
 
+  // 统计各类型错误数量
+  const errorTypeCounts = errors.reduce((acc, error) => {
+    const type = error.type;
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   const tooltipContent = (
-    <div 
-      style={{ 
-        width: '320px', 
-        padding: '8px',
-        animation: 'tooltipFadeIn 0.2s ease-out'
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #f0f0f0' }}>
-        <EditOutlined style={{ color: '#faad14', fontSize: '16px' }} />
-        <span style={{ fontWeight: 'bold', color: '#d48806', fontSize: '14px' }}>语法纠错提示</span>
+    <div style={{ padding: '8px 12px', maxWidth: '200px' }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '6px', 
+        marginBottom: '8px',
+        fontWeight: 'bold',
+        color: '#d48806',
+        fontSize: '13px'
+      }}>
+        <WarningOutlined style={{ fontSize: '14px' }} />
+        <span>发现 {errors.length} 处错误</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
-        {errors.map((error, index) => (
-          <div
-            key={error.id}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {Object.entries(errorTypeCounts).map(([type, count]) => (
+          <span
+            key={type}
             style={{
-              padding: '10px',
-              background: '#fff',
-              borderRadius: '6px',
-              borderLeft: `4px solid ${getErrorTypeColor(error.type)}`,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              animation: `errorItemFadeIn 0.2s ease-out ${index * 0.05}s both`,
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-              ':hover': {
-                transform: 'translateX(4px)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              }
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '2px 8px',
+              background: `${getErrorTypeColor(type)}15`,
+              borderRadius: '4px',
+              fontSize: '12px',
+              color: getErrorTypeColor(type),
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <WarningOutlined style={{ color: getErrorTypeColor(error.type), fontSize: '12px' }} />
-              <span style={{ fontSize: '12px', fontWeight: '500', color: getErrorTypeColor(error.type) }}>
-                {getErrorTypeLabel(error.type)}
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-              <span 
-                style={{ 
-                  textDecoration: 'line-through', 
-                  color: '#f5222d', 
-                  fontSize: '13px',
-                  transition: 'color 0.2s ease'
-                }}
-              >
-                {error.original}
-              </span>
-              <span style={{ color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>→</span>
-              <span 
-                style={{ 
-                  color: '#52c41a', 
-                  fontWeight: 'bold', 
-                  fontSize: '13px',
-                  background: '#f6ffed',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  transition: 'background 0.2s ease'
-                }}
-              >
-                {error.replacement}
-              </span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.4' }}>
-              {error.message}
-            </div>
-          </div>
+            <WarningOutlined style={{ fontSize: '10px' }} />
+            {getErrorTypeLabel(type)} {count}
+          </span>
         ))}
       </div>
-      <style>{`
-        @keyframes tooltipFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-8px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-        @keyframes errorItemFadeIn {
-          from {
-            opacity: 0;
-            transform: translateX(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
+      <div style={{ 
+        marginTop: '8px', 
+        fontSize: '11px', 
+        color: '#999',
+        textAlign: 'center'
+      }}>
+        ↓ 查看下方详情卡片
+      </div>
     </div>
   );
 
@@ -139,14 +98,12 @@ const GrammarTooltip: React.FC<GrammarTooltipProps> = ({ errors, children }) => 
       trigger="hover"
       overlayStyle={{
         maxWidth: 'none',
-        borderRadius: '12px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        borderRadius: '8px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
         border: 'none',
         background: '#fffbe6',
       }}
-      arrowStyle={{
-        display: 'none',
-      }}
+      arrow={false}
     >
       {children}
     </Tooltip>
