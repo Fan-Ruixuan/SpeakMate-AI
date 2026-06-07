@@ -20,7 +20,10 @@ interface SceneItem {
 export default function HomePage() {
   const navigate = useNavigate();
   const [scenes, setScenes] = useState<SceneItem[]>([]);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const saved = localStorage.getItem('chatMessages');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [evaluationResult, setEvaluationResult] = useState<PronunciationEvaluationResult | null>(null);
   const [selectedScene, setSelectedScene] = useState<SceneItem | null>(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -34,6 +37,10 @@ export default function HomePage() {
     };
     fetchScenes();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(messages));
+  }, [messages]);
 
   const handleTranscribeSuccess = (text: string) => {
     const userMessage: ChatMessage = {
