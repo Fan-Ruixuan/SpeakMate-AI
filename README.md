@@ -1,6 +1,9 @@
 # SpeakMate-AI
 AI English Oral Coach | 七牛云暑期实训·AI英语口语陪练全栈项目
 
+## 项目DEMO视频链接
+https://www.bilibili.com/video/BV1j6Et6sEnF/
+
 ## 项目简介
 基于Web全栈实现AI实景口语练习，八大核心功能：
 1. 多场景AI对话：面试/点餐/会议三类实景角色对话
@@ -12,21 +15,47 @@ AI English Oral Coach | 七牛云暑期实训·AI英语口语陪练全栈项目
 7. 智能生词本：自动归集易错词汇
 8. 练习数据可视化报表与历史复盘
 
+> 工程设计说明：本项目以**前端工程化、组件设计、前后端联调、数据流转**为核心实践目标。语音识别、对话应答、语法纠错模块采用**轻量化模拟方案**（正则匹配+固定模板）完成全链路演示，保证整体流程完整可运行，聚焦展示分层架构、接口封装、组件复用、状态管理与数据联动能力。
+
+## 演示账号信息
+测试账号：wang
+登陆密码：123456
+
+说明：本账号为固定演示账号，可完整体验对话交互、语音录音、发音评测、语法纠错、数据可视化、生词本全部模块。语音录音可正常调用浏览器麦克风权限，录音反馈、文字对话回复、语法纠错均为预设典型场景演示，整套交互逻辑、界面组件、数据同步逻辑均自主开发实现。
+
+## 典型场景模拟演示用例
+### 对话回复
+1. 用户文字输入信息
+   用户（右侧蓝色气泡）--> 自定义输入内容
+   机器人（左侧白色气泡）--> 返回固定模板：`You typed: [输入内容]. This is a great practice!`
+
+2. 用户录音输入
+   用户侧自动展示固定转写文本：`Hello, this is standard ASR output`
+   机器人 --> 返回固定模板：`I understand you said: "Hello, this is standard ASR output". Would you like to practice more?`
+
+### 语法纠错
+1. 语法错误： i am very happy
+2. 拼写错误： recieve
+3. 用词不当： very good job
+4. 标点错误： wow .
+5. 错误组合： i recieve very good .
+
 ## 技术栈
 前端：React + TypeScript + Ant Design + Axios + ECharts + WebRTC
 后端：Node.js + Express + SQLite3
 第三方服务：ASR语音识别API、LLM大模型对话接口、英文发音评测接口
 
 ## 前置环境要求
-项目运行统一环境标准，规避版本异常
+项目运行统一环境标准，规避版本兼容问题
 Node.js ≥ 16.14.0（前后端共用运行环境）
 npm ≥ 8.5.0
 
 ## 第三方依赖清单
-### 后端
-express：Web服务框架
-cors：跨域处理
-sqlite3：嵌入式数据库
+### 后端依赖
+- express：Web 服务框架，搭建 HTTP 接口服务
+- cors：跨域资源共享处理
+- sqlite3：嵌入式轻量数据库，数据持久化
+- multer：处理音频文件上传请求
 
 ### 前端
 react、typescript、antd、axios、echarts、react-router-dom
@@ -34,27 +63,29 @@ react、typescript、antd、axios、echarts、react-router-dom
 ### 第三方API
 ASR语音转写API、LLM对话API、英文发音评测API
 
-## 目录说明
-- frontend：前端React项目
-  .env.development：前端开发环境接口配置（纳入版本管控）
-- backend：Node后端服务
-  data.db：SQLite 自动生成数据库文件
-- docs：接口文档、项目设计文档
+## 工程目录说明
+- frontend：前端 React + TS 工程
+  - .env.development：开发环境接口地址配置，纳入版本管控
+- backend：Node.js 后端服务工程
+  - data.db：SQLite 自动生成本地数据库文件
+- docs：接口文档、项目设计文档、开发说明
 
 ## 启动方式
 ### 后端启动
 cd backend 
 npm install
 node app.js
-- 后端默认监听：http://localhost:3000，自动生成 data.db 数据库文件
+- 后端默认监听：http://localhost:3000
+- 首次启用自动生成 data.db 数据库文件
 
 ### 前端启动
 cd frontend
 npm install
 npm run dev
-- 前端默认访问：http://localhost:5173，接口自动指向后端 3000 端口
+- 前端默认访问：http://localhost:5173
+- 接口默认自动指向后端 3000 端口
 
-## 项目迭代记录
+## 项目迭代记录（简化易懂，细节已在GitHub提交）
 ### PR1 | 项目仓库初始化 feat/init-project
 > PR标题：feat: init repo, create dir structure & base readme
 1. **功能描述**：创建frontend/backend/docs三级工程目录；编写基础README，明确产品定位、技术栈、目录结构。
@@ -145,3 +176,27 @@ npm run dev
 2. **实现思路**：创建 PracticeReport 页面组件，对接后端 /api/report API；使用 echarts 初始化折线图（最近7天趋势）、柱状图（周趋势）、饼图（错误分布）。
 3. **测试方式**：访问 /report 页面，验证汇总数据卡片、3个图表正常渲染，数据与后端接口一致。
 4. **补充**：修复路由注册问题，添加 /report 路由；图表支持响应式自适应窗口大小。
+
+### PR15 | 智能生词本 + 全项目收尾优化 feat/full-vocabulary-book-module
+> PR标题：feat: full vocabulary book module & chore: overall optimization and bug fix
+1. **功能描述**：
+  (1)核心功能：
+     - 实现智能生词本模块，支持纠错自动归集生词、手动增删、高频词汇统计；
+  (2)收尾优化（chore 细节打磨）：
+     - 优化发音评测逻辑，清理冗余路由；
+     - 整改语法提示组件，消除重复内容；
+     - 修复纠错卡片错误数量与建议不匹配问题，新增卡片展开 / 收起交互；
+     - 修复 ECharts 折线图数据点位与数值错位问题；
+     - 补全测评报告模块数据联动，完成全模块数据同步；
+     - 统一交互样式、修复各类细节 UI 与逻辑问题。
+2. **实现思路**
+  (1)生词本：后端多接口联动，语法纠错逻辑自动调用生词归集能力；前端封装列表、弹窗、统计卡片组件；
+  (2)优化项：针对线上体验问题迭代，统一全局数据联动规则，保证页面、图表、报表数据完全同步，优化交互体验与界面细节。
+3. **测试方式**
+  (1)生词本：页面访问、生词自动收集、手动操作功能正常；
+  (2)优化项：所有交互、图表、卡片、数据联动运行正常，无错位、重复、逻辑异常问题。
+4. **补充**
+  修复 Ant Design 组件废弃属性告警；
+  首页统一补充生词本、练习报告导航入口；
+  本次迭代完成项目全部功能开发、Bug 修复、体验优化与数据联调，项目整体闭环。
+

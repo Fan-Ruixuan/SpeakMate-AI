@@ -1,19 +1,23 @@
 const result = require('../utils/result');
+const vocabularyService = require('../services/vocabularyService');
 
 exports.correctGrammar = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, userId = '1' } = req.body;
 
     if (!text || text.trim() === '') {
       return res.json(result.fail('Text to correct is required'));
     }
 
+    const trimmedText = text.trim();
+
     console.log('Received grammar correction request:', {
-      textLength: text.length,
-      text: text.trim().substring(0, 50) + '...'
+      textLength: trimmedText.length,
+      text: trimmedText.substring(0, 50) + '...'
     });
 
-    const correctionResult = simulateGrammarCorrection(text.trim());
+    const correctionResult = simulateGrammarCorrection(trimmedText);
+    await autoCollectVocabulary(userId, trimmedText, correctionResult.errors);
 
     res.json(result.success(correctionResult));
   } catch (err) {
@@ -91,14 +95,40 @@ function generateExtraSuggestions(originalText, correctedText) {
   return suggestions;
 }
 
+async function autoCollectVocabulary(userId, originalText, errors) {
+  const collectTypes = ['spelling', 'wording'];
+  const collected = new Set();
+
+  for (const error of errors) {
+    if (!collectTypes.includes(error.type)) continue;
+
+    const word =
+      error.type === 'spelling'
+        ? error.replacement.trim().toLowerCase()
+        : error.original.trim().toLowerCase();
+
+    if (!word || collected.has(word)) continue;
+
+    collected.add(word);
+
+    try {
+      await vocabularyService.collectWord(userId, word, originalText);
+      console.log('Auto collected vocabulary word:', word);
+    } catch (err) {
+      console.error('Auto collect vocabulary failed:', word, err);
+    }
+  }
+}
+
 function getOverallSuggestion(errorCount, textLength) {
+  // 基于错误数量的差异化建议
   if (errorCount === 0) {
-    return 'Excellent! No grammar or spelling errors found in your sentence.';
-  } else if (errorCount <= 2) {
-    return 'Good job! Just a couple of minor issues to fix.';
-  } else if (errorCount <= 5) {
-    return 'Not bad! Review the suggested corrections carefully.';
+    return '🎉 Perfect! 100/100. Your sentence is flawless!';
+  } else if (errorCount === 1) {
+    return '👍 Excellent! 95/100. Just 1 minor issue to fix.';
+  } else if (errorCount === 2) {
+    return ' Good effort! 85/100. 2 corrections to review.';
   } else {
-    return 'Keep practicing! Focus on one type of error at a time.';
+    return '📚 Keep practicing! <75/100. Focus on the highlighted errors.';
   }
 }

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { MessageOutlined, RobotOutlined, SendOutlined, WarningOutlined } from '@ant-design/icons';
+import { MessageOutlined, RobotOutlined, SendOutlined, WarningOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
 import { Avatar } from 'antd';
 import { Input } from 'antd';
 import type { GrammarCorrectionResult, GrammarError } from '../api/grammar';
@@ -20,6 +20,19 @@ interface ChatPanelProps {
 const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState<string>('');
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleCard = (messageId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  };
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -83,80 +96,121 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
                 <div key={msg.id} style={{ animation: 'fadeIn 0.3s ease-out' }}>
                   {msg.type === 'system' ? (
                     // 系统消息：语法纠错结果卡片（PR11）
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <div
-                        style={{
-                          maxWidth: '90%',
-                          padding: '16px',
-                          background: '#fffbe6',
-                          borderRadius: '12px',
-                          border: '1px solid #ffe58f',
-                          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                          <WarningOutlined style={{ color: '#faad14', fontSize: '18px' }} />
-                          <span style={{ fontWeight: 'bold', color: '#d48806' }}>语法与用词纠错</span>
-                        </div>
-                        {(() => {
-                          try {
-                            const data = JSON.parse(msg.content) as GrammarCorrectionResult;
-                            return (
-                              <>
-                                {data.errors.map((error) => (
+                    (() => {
+                      try {
+                        const data = JSON.parse(msg.content) as GrammarCorrectionResult;
+                        const errorCount = data.errors.length;
+                        const shouldCollapse = errorCount >= 3;
+                        const isExpanded = expandedCards.has(msg.id);
+
+                        return (
+                          <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <div
+                              style={{
+                                maxWidth: '90%',
+                                padding: '16px',
+                                background: '#fffbe6',
+                                borderRadius: '12px',
+                                border: '1px solid #ffe58f',
+                                boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <WarningOutlined style={{ color: '#faad14', fontSize: '18px' }} />
+                                  <span style={{ fontWeight: 'bold', color: '#d48806' }}>语法与用词纠错</span>
+                                  <span style={{ fontSize: '12px', color: '#999', background: '#fff', padding: '2px 8px', borderRadius: '10px' }}>
+                                    {errorCount} 处错误
+                                  </span>
+                                </div>
+                                {shouldCollapse && (
                                   <div
-                                    key={error.id}
+                                    onClick={() => toggleCard(msg.id)}
                                     style={{
-                                      marginBottom: '12px',
-                                      padding: '10px',
+                                      cursor: 'pointer',
+                                      color: '#d48806',
+                                      fontSize: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
                                       background: '#fff',
-                                      borderRadius: '6px',
-                                      borderLeft: `4px solid ${
-                                        error.type === 'grammar' ? '#f5222d' :
-                                        error.type === 'spelling' ? '#fa8c16' :
-                                        error.type === 'wording' ? '#1890ff' : '#52c41a'
-                                      }`
+                                      border: '1px solid #ffe58f',
                                     }}
                                   >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                                      <span style={{ textDecoration: 'line-through', color: '#f5222d' }}>
-                                        {error.original}
-                                      </span>
-                                      <span style={{ color: '#52c41a' }}>→</span>
-                                      <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
-                                        {error.replacement}
-                                      </span>
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: '#666' }}>
-                                      {error.message}
-                                    </div>
-                                  </div>
-                                ))}
-                                {data.overallSuggestion && (
-                                  <div style={{
-                                    marginTop: '12px',
-                                    padding: '10px',
-                                    background: '#f6ffed',
-                                    borderRadius: '6px',
-                                    fontSize: '13px',
-                                    color: '#389e0d',
-                                  }}>
-                                    {data.overallSuggestion}
+                                    {isExpanded ? <UpOutlined /> : <DownOutlined />}
+                                    {isExpanded ? '收起' : '展开'}
                                   </div>
                                 )}
-                              </>
-                            );
-                          } catch (e) {
-                            return <div>{msg.content}</div>;
-                          }
-                        })()}
-                      </div>
-                    </div>
+                              </div>
+
+                              {(!shouldCollapse || isExpanded) && (
+                                <>
+                                  {data.errors.map((error) => (
+                                    <div
+                                      key={error.id}
+                                      style={{
+                                        marginBottom: '12px',
+                                        padding: '10px',
+                                        background: '#fff',
+                                        borderRadius: '6px',
+                                        borderLeft: `4px solid ${
+                                          error.type === 'grammar' ? '#f5222d' :
+                                          error.type === 'spelling' ? '#fa8c16' :
+                                          error.type === 'wording' ? '#1890ff' : '#52c41a'
+                                        }`
+                                      }}
+                                    >
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                        <span style={{ textDecoration: 'line-through', color: '#f5222d' }}>
+                                          {error.original}
+                                        </span>
+                                        <span style={{ color: '#52c41a' }}>→</span>
+                                        <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
+                                          {error.replacement}
+                                        </span>
+                                      </div>
+                                      <div style={{ fontSize: '12px', color: '#666' }}>
+                                        {error.message}
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {data.overallSuggestion && (
+                                    <div style={{
+                                      marginTop: '12px',
+                                      padding: '10px',
+                                      background: '#f6ffed',
+                                      borderRadius: '6px',
+                                      fontSize: '13px',
+                                      color: '#389e0d',
+                                    }}>
+                                      {data.overallSuggestion}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {shouldCollapse && !isExpanded && (
+                                <div style={{
+                                  marginTop: '8px',
+                                  padding: '8px',
+                                  background: '#fff',
+                                  borderRadius: '6px',
+                                  fontSize: '12px',
+                                  color: '#999',
+                                  textAlign: 'center',
+                                }}>
+                                  点击右上角展开查看详细错误
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      } catch (e) {
+                        return <div>{msg.content}</div>;
+                      }
+                    })()
                   ) : (
                     // 用户消息和 AI 消息（带悬浮提示 PR12）
                     <div

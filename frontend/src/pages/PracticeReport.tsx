@@ -63,7 +63,7 @@ export default function PracticeReport() {
 
   const fetchReport = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/report');
+      const res = await fetch('/api/report');
       const data = await res.json();
       if (data.code === 200) {
         setReport(data.data);
@@ -93,16 +93,15 @@ export default function PracticeReport() {
         formatter: (params: any) => {
           let result = `<div style="font-weight:bold;margin-bottom:8px">${params[0].axisValue}</div>`;
           params.forEach((item: any) => {
-            const value = item.seriesName === '对话数' ? Math.round(item.value / 10) : item.value;
             result += `<div style="display:flex;justify-content:space-between;margin:4px 0">
               <span>${item.marker} ${item.seriesName}</span>
-              <span style="font-weight:bold">${value}</span>
+              <span style="font-weight:bold">${item.value}</span>
             </div>`;
           });
           return result;
         },
       },
-      grid: { left: '3%', right: '4%', bottom: '18%', top: '10%', containLabel: true },
+      grid: { left: '3%', right: '15%', bottom: '18%', top: '10%', containLabel: true },
       xAxis: {
         type: 'category',
         data: report.recentPerformance.map(item => item.date),
@@ -114,19 +113,35 @@ export default function PracticeReport() {
           fontSize: 11,
         },
       },
-      yAxis: {
-        type: 'value',
-        min: 0,
-        max: 100,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: { lineStyle: { color: '#eee', type: 'dashed' } },
-        axisLabel: { color: '#666' },
-      },
+      yAxis: [
+        {
+          type: 'value',
+          name: '得分',
+          min: 0,
+          max: 100,
+          position: 'left',
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { lineStyle: { color: '#eee', type: 'dashed' } },
+          axisLabel: { color: '#1890ff' },
+        },
+        {
+          type: 'value',
+          name: '对话数',
+          min: 0,
+          max: 20,
+          position: 'right',
+          offset: 0,
+          axisLine: { show: true, lineStyle: { color: '#52c41a' } },
+          axisTick: { show: true, lineStyle: { color: '#52c41a' } },
+          axisLabel: { color: '#52c41a' },
+        },
+      ],
       series: [
         {
           name: '得分',
           type: 'line',
+          yAxisIndex: 0,
           data: report.recentPerformance.map(item => item.score),
           smooth: true,
           symbol: 'circle',
@@ -147,7 +162,8 @@ export default function PracticeReport() {
         {
           name: '对话数',
           type: 'line',
-          data: report.recentPerformance.map(item => item.dialogues * 10),
+          yAxisIndex: 1,
+          data: report.recentPerformance.map(item => item.dialogues),
           smooth: true,
           symbol: 'diamond',
           symbolSize: 8,
