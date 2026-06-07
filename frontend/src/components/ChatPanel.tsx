@@ -80,15 +80,89 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
               }
               
               return (
-                <>
-                  {msg.type === 'system' ? null : (
-                    // 用户消息和 AI 消息
+                <div key={msg.id} style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                  {msg.type === 'system' ? (
+                    // 系统消息：语法纠错结果卡片（PR11）
                     <div
-                      key={msg.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          maxWidth: '90%',
+                          padding: '16px',
+                          background: '#fffbe6',
+                          borderRadius: '12px',
+                          border: '1px solid #ffe58f',
+                          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                          <WarningOutlined style={{ color: '#faad14', fontSize: '18px' }} />
+                          <span style={{ fontWeight: 'bold', color: '#d48806' }}>语法与用词纠错</span>
+                        </div>
+                        {(() => {
+                          try {
+                            const data = JSON.parse(msg.content) as GrammarCorrectionResult;
+                            return (
+                              <>
+                                {data.errors.map((error) => (
+                                  <div
+                                    key={error.id}
+                                    style={{
+                                      marginBottom: '12px',
+                                      padding: '10px',
+                                      background: '#fff',
+                                      borderRadius: '6px',
+                                      borderLeft: `4px solid ${
+                                        error.type === 'grammar' ? '#f5222d' :
+                                        error.type === 'spelling' ? '#fa8c16' :
+                                        error.type === 'wording' ? '#1890ff' : '#52c41a'
+                                      }`
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                      <span style={{ textDecoration: 'line-through', color: '#f5222d' }}>
+                                        {error.original}
+                                      </span>
+                                      <span style={{ color: '#52c41a' }}>→</span>
+                                      <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
+                                        {error.replacement}
+                                      </span>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#666' }}>
+                                      {error.message}
+                                    </div>
+                                  </div>
+                                ))}
+                                {data.overallSuggestion && (
+                                  <div style={{
+                                    marginTop: '12px',
+                                    padding: '10px',
+                                    background: '#f6ffed',
+                                    borderRadius: '6px',
+                                    fontSize: '13px',
+                                    color: '#389e0d',
+                                  }}>
+                                    {data.overallSuggestion}
+                                  </div>
+                                )}
+                              </>
+                            );
+                          } catch (e) {
+                            return <div>{msg.content}</div>;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  ) : (
+                    // 用户消息和 AI 消息（带悬浮提示 PR12）
+                    <div
                       style={{
                         display: 'flex',
                         justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
-                        animation: 'fadeIn 0.3s ease-out',
                       }}
                     >
                       <div
@@ -152,7 +226,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage }) => {
                       </div>
                     </div>
                   )}
-                </>
+                </div>
               );
             })}
           </div>
