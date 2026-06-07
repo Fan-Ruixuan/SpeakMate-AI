@@ -58,6 +58,12 @@ pronunciationRouter.post('/evaluate', upload.single('audio'), (req, res) => {
 app.use('/api/pronunciation', pronunciationRouter);
 console.log('Pronunciation routes registered:', pronunciationRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
 
+const grammarController = require('./controllers/grammarController');
+const grammarRouter = express.Router();
+grammarRouter.post('/correct', grammarController.correctGrammar);
+app.use('/api/grammar', grammarRouter);
+console.log('Grammar routes registered:', grammarRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
+
 const routes = require('./routes');
 app.use('/api', routes);
 

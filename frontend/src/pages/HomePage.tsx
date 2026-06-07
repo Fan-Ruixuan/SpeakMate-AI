@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, Typography, Space, Progress, Tag, Divider } from 'antd';
 import { StarOutlined, WarningOutlined } from '@ant-design/icons';
 import { getSceneList } from '../api/scene';
+import { correctGrammar } from '../api/grammar';
 import type { PronunciationEvaluationResult } from '../api/pronunciation';
 import Microphone from '../components/Microphone';
 import ChatPanel, { type ChatMessage } from '../components/ChatPanel';
@@ -62,7 +63,7 @@ export default function HomePage() {
     setShowPopup(false);
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     const userMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       content,
@@ -72,6 +73,24 @@ export default function HomePage() {
     
     setMessages((prev) => [...prev, userMessage]);
 
+    // 调用语法纠错 API
+    try {
+      const res = await correctGrammar(content);
+      if (res.code === 200 && res.data && res.data.errors.length > 0) {
+        // 显示语法纠错结果
+        const correctionMessage: ChatMessage = {
+          id: `msg-${Date.now()}-grammar`,
+          content: JSON.stringify(res.data),
+          type: 'system',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, correctionMessage]);
+      }
+    } catch (err) {
+      console.error('Grammar correction error:', err);
+    }
+
+    // AI 回复
     setTimeout(() => {
       const aiMessage: ChatMessage = {
         id: `msg-${Date.now()}-ai`,
@@ -80,7 +99,7 @@ export default function HomePage() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+    }, 1500);
   };
 
   return (
