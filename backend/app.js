@@ -68,6 +68,10 @@ const practiceReportRouter = require('./routes/practiceReportRoute');
 app.use('/api/report', practiceReportRouter);
 console.log('Practice report routes registered:', practiceReportRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
 
+const vocabularyRouter = require('./routes/vocabularyRoute');
+app.use('/api/vocabulary', vocabularyRouter);
+console.log('Vocabulary routes registered:', vocabularyRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
+
 const routes = require('./routes');
 app.use('/api', routes);
 
