@@ -138,3 +138,10 @@ npm run dev
 2. **实现思路**：创建 practiceReportController 控制器，封装 getPracticeReport 和 getPracticeHistory 方法，返回图表友好的结构化数据。
 3. **测试方式**：访问 GET /api/report 返回完整练习报告；访问 GET /api/report/history?limit=5 返回练习历史记录。
 4. **补充**：修复端口占用问题，确保服务正常启动；返回数据包含 summary、averages、recentPerformance、errorDistribution、wordFrequency、weeklyTrend 等字段。
+
+### PR14 | 前端练习报告 + ECharts 可视化 feat/frontend-practice-echarts-dashboard
+> PR标题：feat: frontend practice report dashboard with ECharts
+1. **功能描述**：前端展示练习报告，使用 ECharts 实现折线图、柱状图、饼图等可视化图表，展示历史练习记录、分数趋势、错误统计。
+2. **实现思路**：创建 PracticeReport 页面组件，对接后端 /api/report API；使用 echarts 初始化折线图（最近7天趋势）、柱状图（周趋势）、饼图（错误分布）。
+3. **测试方式**：访问 /report 页面，验证汇总数据卡片、3个图表正常渲染，数据与后端接口一致。
+4. **补充**：修复路由注册问题，添加 /report 路由；图表支持响应式自适应窗口大小。
