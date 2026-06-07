@@ -64,6 +64,10 @@ grammarRouter.post('/correct', grammarController.correctGrammar);
 app.use('/api/grammar', grammarRouter);
 console.log('Grammar routes registered:', grammarRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
 
+const practiceReportRouter = require('./routes/practiceReportRoute');
+app.use('/api/report', practiceReportRouter);
+console.log('Practice report routes registered:', practiceReportRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
+
 const routes = require('./routes');
 app.use('/api', routes);
 
