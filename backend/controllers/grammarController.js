@@ -1,19 +1,23 @@
 const result = require('../utils/result');
+const vocabularyService = require('../services/vocabularyService');
 
 exports.correctGrammar = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, userId = '1' } = req.body;
 
     if (!text || text.trim() === '') {
       return res.json(result.fail('Text to correct is required'));
     }
 
+    const trimmedText = text.trim();
+
     console.log('Received grammar correction request:', {
-      textLength: text.length,
-      text: text.trim().substring(0, 50) + '...'
+      textLength: trimmedText.length,
+      text: trimmedText.substring(0, 50) + '...'
     });
 
-    const correctionResult = simulateGrammarCorrection(text.trim());
+    const correctionResult = simulateGrammarCorrection(trimmedText);
+    await autoCollectVocabulary(userId, trimmedText, correctionResult.errors);
 
     res.json(result.success(correctionResult));
   } catch (err) {
@@ -89,6 +93,31 @@ function generateExtraSuggestions(originalText, correctedText) {
   }
   
   return suggestions;
+}
+
+async function autoCollectVocabulary(userId, originalText, errors) {
+  const collectTypes = ['spelling', 'wording'];
+  const collected = new Set();
+
+  for (const error of errors) {
+    if (!collectTypes.includes(error.type)) continue;
+
+    const word =
+      error.type === 'spelling'
+        ? error.replacement.trim().toLowerCase()
+        : error.original.trim().toLowerCase();
+
+    if (!word || collected.has(word)) continue;
+
+    collected.add(word);
+
+    try {
+      await vocabularyService.collectWord(userId, word, originalText);
+      console.log('Auto collected vocabulary word:', word);
+    } catch (err) {
+      console.error('Auto collect vocabulary failed:', word, err);
+    }
+  }
 }
 
 function getOverallSuggestion(errorCount, textLength) {

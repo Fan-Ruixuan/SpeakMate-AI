@@ -1,5 +1,6 @@
 const result = require('../utils/result');
 const { db } = require('../db/dbInit');
+const vocabularyService = require('../services/vocabularyService');
 
 const runQuery = (sql, params = []) =>
   new Promise((resolve, reject) => {
@@ -118,35 +119,13 @@ exports.collectVocabulary = async (req, res) => {
       return res.json(result.fail('Word is required'));
     }
 
-    const uid = parseUserId(userId);
-    const normalizedWord = word.trim().toLowerCase();
+    const row = await vocabularyService.collectWord(userId, word, wrongSent);
 
-    const existing = await getQuery(
-      'SELECT * FROM wordbook WHERE uid = ? AND word = ?',
-      [uid, normalizedWord]
-    );
-
-    if (existing) {
-      await runQuery(
-        'UPDATE wordbook SET count = count + 1, wrong_sent = ? WHERE wid = ?',
-        [wrongSent || existing.wrong_sent, existing.wid]
-      );
-      const updated = await getQuery('SELECT * FROM wordbook WHERE wid = ?', [
-        existing.wid,
-      ]);
-      return res.json(result.success({ ...mapRow(updated), isNew: false }));
+    if (!row) {
+      return res.json(result.fail('Word is required'));
     }
 
-    const insertResult = await runQuery(
-      'INSERT INTO wordbook (uid, word, phonetic, wrong_sent, count) VALUES (?, ?, ?, ?, 1)',
-      [uid, normalizedWord, '', wrongSent]
-    );
-
-    const row = await getQuery('SELECT * FROM wordbook WHERE wid = ?', [
-      insertResult.lastID,
-    ]);
-
-    res.json(result.success({ ...mapRow(row), isNew: true }));
+    res.json(result.success({ ...mapRow(row), isNew: row.isNew }));
   } catch (err) {
     console.error('Collect vocabulary error:', err);
     res.status(500).json(result.fail('Collect vocabulary error: ' + err.message));
