@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tooltip } from 'antd';
-import { EditOutlined, AlertCircleOutlined } from '@ant-design/icons';
+import { EditOutlined, WarningOutlined } from '@ant-design/icons';
 import type { GrammarError } from '../api/grammar';
 
 interface GrammarTooltipProps {
@@ -58,7 +58,7 @@ const GrammarTooltip: React.FC<GrammarTooltipProps> = ({ errors, children }) => 
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <AlertCircleOutlined style={{ color: getErrorTypeColor(error.type), fontSize: '12px' }} />
+              <WarningOutlined style={{ color: getErrorTypeColor(error.type), fontSize: '12px' }} />
               <span style={{ fontSize: '12px', fontWeight: '500', color: getErrorTypeColor(error.type) }}>
                 {getErrorTypeLabel(error.type)}
               </span>
