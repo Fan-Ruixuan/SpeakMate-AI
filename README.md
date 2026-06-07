@@ -1,8 +1,24 @@
 # SpeakMate-AI
 AI English Oral Coach | 七牛云暑期实训·AI英语口语陪练全栈项目
 
+## 文档目录
+1. [项目DEMO视频链接](#项目demo视频链接)
+2. [完整开发迭代PR记录](#完整开发迭代pr记录)
+3. [项目简介](#项目简介)
+4. [演示账号信息](#演示账号信息)
+5. [典型场景模拟演示用例](#典型场景模拟演示用例)
+6. [技术栈](#技术栈)
+7. [前置环境要求](#前置环境要求)
+8. [第三方依赖清单](#第三方依赖清单)
+9. [工程目录说明](#工程目录说明)
+10. [启动方式](#启动方式)
+11. [项目迭代记录](#项目迭代记录--简化版易懂)
+
 ## 项目DEMO视频链接
 https://www.bilibili.com/video/BV1j6Et6sEnF/
+
+## 完整开发迭代PR记录
+https://github.com/Fan-Ruixuan/SpeakMate-AI/pulls?q=is%3Apr+is%3Aclosed
 
 ## 项目简介
 基于Web全栈实现AI实景口语练习，八大核心功能：
@@ -19,7 +35,7 @@ https://www.bilibili.com/video/BV1j6Et6sEnF/
 
 ## 演示账号信息
 测试账号：wang
-登陆密码：123456
+登录密码：123456
 
 说明：本账号为固定演示账号，可完整体验对话交互、语音录音、发音评测、语法纠错、数据可视化、生词本全部模块。语音录音可正常调用浏览器麦克风权限，录音反馈、文字对话回复、语法纠错均为预设典型场景演示，整套交互逻辑、界面组件、数据同步逻辑均自主开发实现。
 
@@ -63,12 +79,17 @@ react、typescript、antd、axios、echarts、react-router-dom
 ### 第三方API
 ASR语音转写API、LLM对话API、英文发音评测API
 
+> 说明：本项目基于以上开源框架与第三方API搭建基础能力，页面组件、业务逻辑、交互逻辑、数据联动、错误检测规则均为自主开发实现。
+
 ## 工程目录说明
 - frontend：前端 React + TS 工程
   - .env.development：开发环境接口地址配置，纳入版本管控
 - backend：Node.js 后端服务工程
   - data.db：SQLite 自动生成本地数据库文件
-- docs：接口文档、项目设计文档、开发说明
+- docs：
+  - API_DOCUMENTATION.md  接口文档：包含所有后端接口的详细说明、异常接口与问题修复记录。
+  - PROJECT_DESIGN.md  项目设计文档：对项目架构、模块设计、数据库设计等进行详细说明。
+  - DEVELOPMENT_GUIDE.md  开发说明：涵盖环境搭建、项目启动、代码规范、Git版本流程、调试与部署指南。
 
 ## 启动方式
 ### 后端启动
@@ -85,7 +106,7 @@ npm run dev
 - 前端默认访问：http://localhost:5173
 - 接口默认自动指向后端 3000 端口
 
-## 项目迭代记录（简化易懂，细节已在GitHub提交）
+## 项目迭代记录--简化版易懂
 ### PR1 | 项目仓库初始化 feat/init-project
 > PR标题：feat: init repo, create dir structure & base readme
 1. **功能描述**：创建frontend/backend/docs三级工程目录；编写基础README，明确产品定位、技术栈、目录结构。
@@ -128,12 +149,20 @@ npm run dev
 3. **测试方式**：点击录音按钮可正常授权、启停录音，三大场景卡片正常展示。
 4. **补充**：纯前端迭代，对接 PR5 ASR 接口。
 
+### PR7 | 音频上传与ASR语音转写全链路 feat/frontend-asr-upload
+> PR标题：feat: upload audio and access ASR transcription
+1. **功能描述**：打通录音文件上传与ASR识别完整链路，修复跨域、录音卡死、接口命名不一致等历史问题。
+2. **实现思路**：使用原生Fetch上传音频，multer处理文件，规范编码并增加超时容错。
+3. **测试方式**：前后端启动后录音可正常识别，多次连续录音无卡死，TS校验无告警。
+4. **补充**：统一前后端音频接口命名，LLM场景对话逻辑整合至PR8聊天面板。
+
+
 ### PR8 | 前端聊天对话面板 feat/frontend-chat-panel
 > PR标题：feat: frontend chat message panel
-1. **功能描述**：实现对话气泡布局，用户消息右侧蓝色，AI 消息左侧白色，支持文本和录音两种输入方式。
-2. **实现思路**：React 状态管理对话列表，useRef 实现自动滚动，气泡圆角差异化设计。
-3. **测试方式**：输入消息按 Enter 发送，消息正常显示，列表自动滚动到底部。
-4. **补充**：纯前端迭代，后续对接发音评测和语法纠错能力。
+1. **功能描述**：实现区分用户与AI的对话气泡布局，支持文本、录音两种消息输入，展示PR7输出的ASR识别文本，并模拟渲染AI对话对话回复内容。
+2. **实现思路**：React状态管理对话列表，useRef实现滚动到底，差异化气泡样式区分消息方。
+3. **测试方式**：输入消息回车发送，消息正常渲染，列表自动滚动至最新内容。
+4. **补充**：承接PR7音频识别结果，仅前端模拟LLM对话交互、无后端改动，整合LLM场景对话逻辑，为后续评测、纠错提供展示载体。
 
 ### PR9 | 发音智能评测与打分 feat/backend-pronunciation-score-api
 > PR标题：feat: backend pronunciation evaluation & scoring API
