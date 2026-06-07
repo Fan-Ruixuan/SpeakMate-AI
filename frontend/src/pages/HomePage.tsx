@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card, Typography, Space, Progress, Tag, Divider, message } from 'antd';
-import { StarOutlined, WarningOutlined, CheckCircleOutlined, EditOutlined } from '@ant-design/icons';
+import { Card, Typography, Space, Progress, Tag, Divider } from 'antd';
+import { StarOutlined, WarningOutlined } from '@ant-design/icons';
 import { getSceneList } from '../api/scene';
 import { correctGrammar } from '../api/grammar';
-import type { PronunciationEvaluationResult, GrammarCorrectionResult } from '../api/pronunciation';
+import type { PronunciationEvaluationResult } from '../api/pronunciation';
 import Microphone from '../components/Microphone';
 import ChatPanel, { type ChatMessage } from '../components/ChatPanel';
 import PronunciationScorePopup from '../components/PronunciationScorePopup';

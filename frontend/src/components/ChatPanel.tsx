@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { MessageOutlined, RobotOutlined, SendOutlined, EditOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { Avatar, Tag, Divider } from 'antd';
+import { Avatar, Tag } from 'antd';
 import { Input } from 'antd';
 import type { GrammarCorrectionResult } from '../api/grammar';
 
