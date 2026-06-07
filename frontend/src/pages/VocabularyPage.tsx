@@ -231,9 +231,8 @@ const VocabularyPage = () => {
           </Col>
           <Col span={12}>
             <Card
-              title="高频错词 TOP5"
+              title={<span className="font-semibold text-gray-600">高频错词 TOP5</span>}
               className="shadow-sm border border-gray-100"
-              titleStyle={{ fontWeight: '600', color: '#595959' }}
             >
               <div className="flex flex-wrap gap-3">
                 {stats?.topErrorWords.map((item, index) => (
