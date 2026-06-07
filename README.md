@@ -131,3 +131,10 @@ npm run dev
 2. **实现思路**：创建 GrammarTooltip 组件，使用 Ant Design Tooltip 实现悬浮提示，添加淡入动画效果。
 3. **测试方式**：输入包含语法错误的英文，发送后消息气泡右上角显示红色警告图标，悬浮查看纠错详情。
 4. **补充**：修复图标导入问题（AlertCircleOutlined 替换为 WarningOutlined）；添加逐项动画和悬停交互效果。
+
+### PR13 | 后端练习报告统计接口 feat/practice-report-api
+> PR标题：feat: backend practice report & statistics API
+1. **功能描述**：提供练习报告统计接口，支持获取汇总数据（练习天数、会话数、对话数）、平均分、错误分布、词汇频率、周趋势等图表可用数据结构。
+2. **实现思路**：创建 practiceReportController 控制器，封装 getPracticeReport 和 getPracticeHistory 方法，返回图表友好的结构化数据。
+3. **测试方式**：访问 GET /api/report 返回完整练习报告；访问 GET /api/report/history?limit=5 返回练习历史记录。
+4. **补充**：修复端口占用问题，确保服务正常启动；返回数据包含 summary、averages、recentPerformance、errorDistribution、wordFrequency、weeklyTrend 等字段。
