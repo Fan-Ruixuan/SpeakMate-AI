@@ -33,6 +33,10 @@ const vocabularyRouter = require('./routes/vocabularyRoute');
 app.use('/api/vocabulary', vocabularyRouter);
 console.log('Vocabulary routes registered:', vocabularyRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
 
+const asrRouter = require('./routes/asrRoute');
+app.use('/api/asr', asrRouter);
+console.log('ASR routes registered:', asrRouter.stack.map(l => ({path: l.route?.path, methods: l.route?.methods})));
+
 const routes = require('./routes');
 app.use('/api', routes);
 

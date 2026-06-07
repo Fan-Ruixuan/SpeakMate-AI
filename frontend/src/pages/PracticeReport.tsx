@@ -63,7 +63,7 @@ export default function PracticeReport() {
 
   const fetchReport = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/report');
+      const res = await fetch('/api/report');
       const data = await res.json();
       if (data.code === 200) {
         setReport(data.data);
