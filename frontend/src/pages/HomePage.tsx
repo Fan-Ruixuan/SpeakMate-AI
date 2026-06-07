@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Card, Typography, Space, Progress, Tag, Divider } from 'antd';
-import { StarOutlined } from '@ant-design/icons';
+import { StarOutlined, WarningOutlined } from '@ant-design/icons';
 import { getSceneList } from '../api/scene';
 import type { PronunciationEvaluationResult } from '../api/pronunciation';
 import Microphone from '../components/Microphone';
 import ChatPanel, { type ChatMessage } from '../components/ChatPanel';
+import PronunciationScorePopup from '../components/PronunciationScorePopup';
 
 const { Title } = Typography;
 
@@ -19,6 +20,7 @@ export default function HomePage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [evaluationResult, setEvaluationResult] = useState<PronunciationEvaluationResult | null>(null);
   const [selectedScene, setSelectedScene] = useState<SceneItem | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const fetchScenes = async () => {
@@ -53,6 +55,11 @@ export default function HomePage() {
 
   const handleEvaluationComplete = (result: PronunciationEvaluationResult) => {
     setEvaluationResult(result);
+    setShowPopup(true);
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
   };
 
   const handleSendMessage = (content: string) => {
@@ -197,12 +204,59 @@ export default function HomePage() {
             {evaluationResult.phonemeErrors.length > 0 && (
               <>
                 <Divider style={{ margin: '16px 0' }} />
-                <p style={{ fontWeight: 500 }}>发音问题：</p>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <p style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <WarningOutlined style={{ color: '#faad14' }} />
+                  发音错误点
+                </p>
+                <div style={{ background: '#fff7e6', padding: 16, borderRadius: 8 }}>
                   {evaluationResult.phonemeErrors.map((error, index) => (
-                    <Tag key={index} color="red">
-                      {error.word}: /{error.actualPhoneme}/ → /{error.targetPhoneme}/
-                    </Tag>
+                    <div 
+                      key={index} 
+                      style={{ 
+                        marginBottom: 12, 
+                        padding: 12, 
+                        background: '#fff', 
+                        borderRadius: 6,
+                        borderLeft: '4px solid #f5222d'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                        <span style={{ fontWeight: 'bold', fontSize: 14 }}>单词:</span>
+                        <Tag color="blue" style={{ fontSize: 14, padding: '4px 12px' }}>{error.word}</Tag>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ color: '#999', fontSize: 13 }}>实际发音:</span>
+                          <span 
+                            style={{ 
+                              fontSize: 16, 
+                              fontWeight: 'bold', 
+                              color: '#f5222d',
+                              backgroundColor: '#fff1f0',
+                              padding: '4px 8px',
+                              borderRadius: 4
+                            }}
+                          >/{error.actualPhoneme}/</span>
+                        </div>
+                        <span style={{ color: '#faad14', fontSize: 18 }}>→</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ color: '#999', fontSize: 13 }}>正确发音:</span>
+                          <span 
+                            style={{ 
+                              fontSize: 16, 
+                              fontWeight: 'bold', 
+                              color: '#52c41a',
+                              backgroundColor: '#f6ffed',
+                              padding: '4px 8px',
+                              borderRadius: 4
+                            }}
+                          >/{error.targetPhoneme}/</span>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 8, paddingLeft: 4 }}>
+                        <span style={{ color: '#faad14', fontSize: 12 }}>💡 建议：注意音标 "{error.targetPhoneme}" 的正确发音</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </>
@@ -215,6 +269,14 @@ export default function HomePage() {
         <div style={{ marginTop: 30 }}>
           <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
         </div>
+
+        {evaluationResult && (
+          <PronunciationScorePopup
+            visible={showPopup}
+            onCancel={handleClosePopup}
+            evaluationResult={evaluationResult}
+          />
+        )}
       </div>
     </div>
   );
