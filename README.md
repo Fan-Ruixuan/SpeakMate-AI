@@ -124,3 +124,10 @@ npm run dev
 2. **实现思路**：后端 MVC 分层架构，正则表达式模拟错误检测，给出建议；前端封装 TypeScript 类型安全的评测 API。
 3. **测试方式**：输入包含语法错误的英文（例："i am very happy"），发送后自动展示纠错结果卡片。
 4. **补充**：修复后端路由注册问题；扩展 ChatMessage 类型支持 system 消息类型。
+
+### PR12 | 前端纠错悬浮提示 feat/grammar-error-hover-tooltip
+> PR标题：feat: frontend grammar error hover tooltip
+1. **功能描述**：用户消息悬浮展示错误说明与优化建议，点击消息气泡右上角图标查看详细纠错信息。
+2. **实现思路**：创建 GrammarTooltip 组件，使用 Ant Design Tooltip 实现悬浮提示，添加淡入动画效果。
+3. **测试方式**：输入包含语法错误的英文，发送后消息气泡右上角显示红色警告图标，悬浮查看纠错详情。
+4. **补充**：修复图标导入问题（AlertCircleOutlined 替换为 WarningOutlined）；添加逐项动画和悬停交互效果。
