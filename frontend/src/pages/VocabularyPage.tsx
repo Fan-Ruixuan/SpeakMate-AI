@@ -34,12 +34,14 @@ const VocabularyPage = () => {
   const [stats, setStats] = useState<VocabularyStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [form] = Form.useForm();
 
   const fetchVocabularyList = async () => {
     setLoading(true);
     try {
-      const response = await getVocabularyList({ page: 1, limit: 50 });
+      const response = await getVocabularyList({ page: currentPage, limit: pageSize });
       if (response.code === 200) {
         setDataSource(response.data.list);
       }
@@ -251,9 +253,16 @@ const VocabularyPage = () => {
           loading={loading}
           rowKey="id"
           pagination={{
-            pageSize: 10,
+            current: currentPage,
+            pageSize: pageSize,
+            pageSizeOptions: ['10', '20', '30', '50'],
             showSizeChanger: true,
             showTotal: (total) => `共 ${total} 条`,
+            onChange: async (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+              await fetchVocabularyList();
+            },
           }}
           locale={{
             emptyText: '暂无生词记录',
